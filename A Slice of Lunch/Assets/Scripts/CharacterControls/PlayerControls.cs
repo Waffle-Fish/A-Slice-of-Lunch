@@ -54,7 +54,6 @@ public class PlayerControls : MonoBehaviour
     }
 
     #region Slice Zone
-
     private void ResetSlicePoints()
     {
         slicePoints[0] = checkVector;
@@ -62,26 +61,40 @@ public class PlayerControls : MonoBehaviour
     }
 
     private void Slice() {
-        Debug.Log("Am Slicing");
+        // Debug.Log("Am Slicing");
         if (slicePoints[0] == checkVector) {
             slicePoints[0] = mouseWorldPosition;
         } else if (slicePoints[1] == checkVector){
             slicePoints[1] = mouseWorldPosition;
             slicedObjects = Physics2D.LinecastAll(slicePoints[0], slicePoints[1]).ToList();
-            // ignores not food in slicedObjects
-            foreach (var foodCollider in slicedObjects)
+            foreach (var maskCollider in slicedObjects)
             {
-                if (!foodCollider.transform.CompareTag("Food")) {
+                // ignores not food in slicedObjects
+                if (!maskCollider.transform.CompareTag("Food")) {
                     continue;
                 }
-                Transform maskT = foodCollider.transform.GetChild(0);
-                float rotAng = Vector2.Angle(slicePoints[0], slicePoints[1]);
-                maskT.Rotate(Vector3.forward, rotAng);
+
+                Transform maskT = maskCollider.transform;
+                // Rotate mask to be parallel to slice
+                // if slice goes from top left to bottom right, or vice-versa, rotate away from y-axis instead of x-axis
+                bool rotateFromYAxis = (slicePoints[0].x < slicePoints[1].x && slicePoints[0].y > slicePoints[1].y) || (slicePoints[1].x < slicePoints[0].x && slicePoints[1].y > slicePoints[0].y);
+                float opposite = (rotateFromYAxis) ? Mathf.Abs(slicePoints[1].x - slicePoints[0].x) : Mathf.Abs(slicePoints[1].y - slicePoints[0].y);
+                float hypotenuse = Vector2.Distance(slicePoints[0], slicePoints[1]);
+                float rotAng = Mathf.Asin(opposite / hypotenuse) * Mathf.Rad2Deg;
+                maskT.rotation = Quaternion.identity * Quaternion.Euler(0,0,rotAng);
+
+                // Moves mask away from slice line
+                Vector2 perpendicularSlice = Vector2.Perpendicular(slicePoints[0]-slicePoints[1]).normalized;
+                Debug.DrawLine(maskT.position, maskT.position+5*(Vector3)perpendicularSlice, Color.green, 10f);
+                Vector3 maskHalfYScale = new Vector3 (maskT.localScale.x, maskT.localScale.y * 0.5f, maskT.localScale.z);
+                Vector3 maskHalfXScale = new Vector3 (maskT.localScale.x * 0.5f, maskT.localScale.y, maskT.localScale.z);
+                maskT.localScale = 
+                maskT.position += (Vector3)perpendicularSlice * 0.5f;
             }
 
 
 
-            Debug.DrawLine(slicePoints[0], slicePoints[1], Color.black, 100f);
+            Debug.DrawLine(slicePoints[0], slicePoints[1], Color.black, 10f);
             // process slice
             ResetSlicePoints();
         }
