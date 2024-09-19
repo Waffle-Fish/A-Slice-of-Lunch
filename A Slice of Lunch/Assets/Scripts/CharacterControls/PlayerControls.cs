@@ -84,12 +84,20 @@ public class PlayerControls : MonoBehaviour
                 maskT.rotation = Quaternion.identity * Quaternion.Euler(0,0,rotAng);
 
                 // Moves mask away from slice line
-                Vector2 perpendicularSlice = Vector2.Perpendicular(slicePoints[0]-slicePoints[1]).normalized;
-                Debug.DrawLine(maskT.position, maskT.position+5*(Vector3)perpendicularSlice, Color.green, 10f);
-                Vector3 maskHalfYScale = new Vector3 (maskT.localScale.x, maskT.localScale.y * 0.5f, maskT.localScale.z);
-                Vector3 maskHalfXScale = new Vector3 (maskT.localScale.x * 0.5f, maskT.localScale.y, maskT.localScale.z);
-                maskT.localScale = 
-                maskT.position += (Vector3)perpendicularSlice * 0.5f;
+                Vector2 sliceEdgePoint_0 = Physics2D.Raycast(slicePoints[0], (slicePoints[1] - slicePoints[0]).normalized, 100).point;
+                Vector2 sliceEdgePoint_1 = Physics2D.Raycast(slicePoints[1], (slicePoints[0] - slicePoints[1]).normalized, 100).point;
+                Debug.DrawLine(slicePoints[0], sliceEdgePoint_0, Color.blue, 100f);
+                Debug.DrawLine(slicePoints[1], sliceEdgePoint_1, Color.blue, 100f);
+                // Vector2 sliceCenter = (sliceEdgePoint_0 + sliceEdgePoint_1) / 2f;
+
+                // maskT.position = sliceCenter;
+
+                // Vector2 perpendicularSlice = Vector2.Perpendicular(slicePoints[0]-slicePoints[1]).normalized;
+                // // Debug.DrawLine(maskT.position, maskT.position+5*(Vector3)perpendicularSlice, Color.green, 10f);
+                // Vector3 maskHalfYScale = new Vector3 (maskT.localScale.x, maskT.localScale.y * 0.5f, maskT.localScale.z);
+                // Vector3 maskHalfXScale = new Vector3 (maskT.localScale.x * 0.5f, maskT.localScale.y, maskT.localScale.z);
+                // maskT.localScale = (rotateFromYAxis) ? maskHalfXScale : maskHalfYScale;
+                // maskT.position += (Vector3)perpendicularSlice * 0.5f;
             }
 
 
