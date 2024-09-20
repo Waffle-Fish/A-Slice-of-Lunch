@@ -6,6 +6,10 @@ using UnityEngine.InputSystem;
 
 public class PlayerControls : MonoBehaviour
 {
+    [Header("Detect Object")]
+    private Vector3 mouseWorldPosition;
+    Ray clickRay;
+
     [Header("Slice Variables")]
     [SerializeField]
     private bool isHoldingKnife = false;
@@ -14,9 +18,6 @@ public class PlayerControls : MonoBehaviour
     private Vector3[] slicePoints = new Vector3[2];
     readonly private Vector3 checkVector = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
-
-    private Vector3 mouseWorldPosition;
-    Ray clickRay;
 
     private void Awake() {
         mouseWorldPosition = new();
@@ -27,23 +28,14 @@ public class PlayerControls : MonoBehaviour
         ResetSlicePoints();
     }
 
+    // This function gets called every frame
     void Update()
     {
         mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         DetectLeftClick();
     }
 
-    private void DetectLeftClick()
-    {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (isHoldingKnife) {
-                Slice();
-            }
-            // Debug.Log(DetectObject());
-        }
-    }
-
+    // Returns the tag of the first clicked object
     private string DetectObject() {
         clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(clickRay.origin, clickRay.direction * 100, Color.green, 5f);
@@ -55,7 +47,38 @@ public class PlayerControls : MonoBehaviour
         return "None";
     }
 
+    #region  Drag and Drop
+    // ==================================
+    // To Do: For Felix
+    // Implement drag and drop food
+    // * Click and hold food to pick up
+    // * When food is picked up, have it follow the mouse 
+    // * Let go of left click to drop food (it stops following mouse)
+    // ================================== 
+
+    // You can rename this function
+    private void DetectClickAndHold() {
+        // if mouse is pressed
+        // if DetectObject() is food
+        // {
+        //    Do Drag and Drop
+        // }
+    }
+
+    #endregion
+
     #region Slice Zone
+    private void DetectLeftClick()
+    {
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (isHoldingKnife) {
+                Slice();
+            }
+            // Debug.Log(DetectObject());
+        }
+    }
+
     private void ResetSlicePoints()
     {
         slicePoints[0] = checkVector;
@@ -99,11 +122,37 @@ public class PlayerControls : MonoBehaviour
 
                 // Spawn Mask
                 Vector2 spawnPos = sliceCenter + parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
-                Transform currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFruit.GetChild(1)).transform;
+                Transform currentSpriteMask = null;
+                // foreach (Transform sm in parentFruit.GetChild(1))
+                // {
+                //     if (!sm.gameObject.activeSelf) {
+                //         currentSpriteMask = sm;
+                //         currentSpriteMask.gameObject.SetActive(true);
+                //         currentSpriteMask.transform.SetPositionAndRotation(spawnPos, Quaternion.Euler(0,0,rotAng));
+                //         break;
+                //     }
+                // }
+                // if (currentSpriteMask == null) {
+                    currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFruit.GetChild(1)).transform;
+                // }
 
                 // Create other side slice
-                GameObject otherSlice = Instantiate(parentFruit.gameObject, parentFruit.position, parentFruit.rotation);
-
+                GameObject otherSlice = null;
+                // foreach (Transform food in parentFruit.parent)
+                // {
+                //     if (!food.gameObject.activeSelf) {
+                //         otherSlice = food.gameObject;
+                //         Debug.Log(otherSlice.name);
+                //         otherSlice.SetActive(true);
+                //         otherSlice.transform.SetPositionAndRotation(parentFruit.position, parentFruit.rotation);
+                //         otherSlice.transform.GetChild(1).GetChild(0).gameObject.SetActive(true);
+                //         break;
+                //     }
+                // }
+                // if (otherSlice == null) {
+                    otherSlice = Instantiate(parentFruit.gameObject, parentFruit.position, parentFruit.rotation, parentFruit.parent);
+                // }
+                
                 float separationSpace = 0.05f;
                 otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
 
