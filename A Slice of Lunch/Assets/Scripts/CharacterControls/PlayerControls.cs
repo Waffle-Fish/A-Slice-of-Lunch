@@ -9,6 +9,8 @@ public class PlayerControls : MonoBehaviour
     [Header("Slice Variables")]
     [SerializeField]
     private bool isHoldingKnife = false;
+    [SerializeField]
+    private GameObject spriteMask;
     private Vector3[] slicePoints = new Vector3[2];
     readonly private Vector3 checkVector = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
@@ -70,35 +72,43 @@ public class PlayerControls : MonoBehaviour
             foreach (var maskCollider in slicedObjects)
             {
                 // ignores not food in slicedObjects
-                if (!maskCollider.transform.CompareTag("Food") || maskCollider.collider is not BoxCollider2D) {
+                if (!maskCollider.transform.CompareTag("Food") ) {
                     continue;
                 }
 
-                Transform maskT = maskCollider.transform;
-                // Rotate mask to be parallel to slice
-                // if slice goes from top left to bottom right, or vice-versa, rotate away from y-axis instead of x-axis
-                bool rotateFromYAxis = (slicePoints[0].x < slicePoints[1].x && slicePoints[0].y > slicePoints[1].y) || (slicePoints[1].x < slicePoints[0].x && slicePoints[1].y > slicePoints[0].y);
-                float opposite = (rotateFromYAxis) ? Mathf.Abs(slicePoints[1].x - slicePoints[0].x) : Mathf.Abs(slicePoints[1].y - slicePoints[0].y);
-                float hypotenuse = Vector2.Distance(slicePoints[0], slicePoints[1]);
-                float rotAng = Mathf.Asin(opposite / hypotenuse) * Mathf.Rad2Deg;
-                maskT.rotation = Quaternion.identity * Quaternion.Euler(0,0,rotAng);
+                // Slice fruit
+                Transform parentFruit = maskCollider.transform.parent;
 
-                // Moves mask away from slice line
+                // Gets spawn point
                 Vector2 sliceEdgePoint_0 = Physics2D.Raycast(slicePoints[0], (slicePoints[1] - slicePoints[0]).normalized, 100).point;
                 Vector2 sliceEdgePoint_1 = Physics2D.Raycast(slicePoints[1], (slicePoints[0] - slicePoints[1]).normalized, 100).point;
                 Debug.DrawLine(slicePoints[0], sliceEdgePoint_0, Color.blue, 100f);
                 Debug.DrawLine(slicePoints[1], sliceEdgePoint_1, Color.blue, 100f);
                 Vector2 sliceCenter = (sliceEdgePoint_0 + sliceEdgePoint_1) / 2f;
 
-                maskT.position = sliceCenter;
+                // Rotate mask to be parallel to slice
+                bool rotateFromYAxis = (slicePoints[0].x < slicePoints[1].x && slicePoints[0].y > slicePoints[1].y) || (slicePoints[1].x < slicePoints[0].x && slicePoints[1].y > slicePoints[0].y);
+                float opposite = (rotateFromYAxis) ? Mathf.Abs(slicePoints[1].x - slicePoints[0].x) : Mathf.Abs(slicePoints[1].y - slicePoints[0].y);
+                float hypotenuse = Vector2.Distance(slicePoints[0], slicePoints[1]);
+                float rotAng = Mathf.Asin(opposite / hypotenuse) * Mathf.Rad2Deg;
+
+                // Picks one side of the slice for the mask to go to
                 Vector2 perpendicularSlice = Vector2.Perpendicular(slicePoints[0]-slicePoints[1]).normalized;
+                // float sliceDistance = Vector2.Distance(sliceEdgePoint_0, sliceEdgePoint_1);
+                // Debug.Log(sliceDistance);
 
+                // Spawn Mask
+                Vector2 spawnPos = sliceCenter + parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
+                Transform currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFruit.GetChild(1)).transform;
 
-                // // Debug.DrawLine(maskT.position, maskT.position+5*(Vector3)perpendicularSlice, Color.green, 10f);
-                // Vector3 maskHalfYScale = new Vector3 (maskT.localScale.x, maskT.localScale.y * 0.5f, maskT.localScale.z);
-                // Vector3 maskHalfXScale = new Vector3 (maskT.localScale.x * 0.5f, maskT.localScale.y, maskT.localScale.z);
-                // maskT.localScale = (rotateFromYAxis) ? maskHalfXScale : maskHalfYScale;
-                maskT.position += 0.5f * maskT.localScale.x * (Vector3)perpendicularSlice;
+                // Create other side slice
+                GameObject otherSlice = Instantiate(parentFruit.gameObject, parentFruit.position, parentFruit.rotation);
+
+                float separationSpace = 0.05f;
+                otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
+
+                parentFruit.Translate(-perpendicularSlice * separationSpace);
+                otherSlice.transform.Translate(perpendicularSlice * separationSpace);
             }
 
             Debug.DrawLine(slicePoints[0], slicePoints[1], Color.black, 10f);
