@@ -121,7 +121,7 @@ public class PlayerControls : MonoBehaviour
                 // Debug.Log(sliceDistance);
 
                 // Spawn Mask
-                Vector2 spawnPos = sliceCenter + parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
+                Vector2 spawnPos = sliceCenter + spriteMask.transform.localScale.x /2f * perpendicularSlice;
                 Transform currentSpriteMask = null;
                 // foreach (Transform sm in parentFruit.GetChild(1))
                 // {
@@ -154,7 +154,7 @@ public class PlayerControls : MonoBehaviour
                 // }
                 
                 float separationSpace = 0.05f;
-                otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - parentFruit.GetChild(1).localScale.x / 2f * perpendicularSlice;
+                otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice;
 
                 parentFruit.Translate(-perpendicularSlice * separationSpace);
                 otherSlice.transform.Translate(perpendicularSlice * separationSpace);
