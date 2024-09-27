@@ -57,17 +57,18 @@ public class PlayerControls : MonoBehaviour
     // * Let go of left click to drop food (it stops following mouse)
     // ================================== 
     public class DragDropFood : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler {
-        public void OnPointDown(PointerEventData eventData) {
-            
+        public void OnPointerDown(PointerEventData eventData) {
+            Debug.Log("OnPointDown");        
         }
         public void OnEndDrag(PointerEventData eventData) {
-        
+            Debug.Log("OnEndDrag");
         }
         public void OnDrag(PointerEventData eventData) {
             rectTransform.anchoredPosition += eventData.delta;
+            Debug.Log("OnDrag");
         }
         public void OnBeginDrag(PointerEventData eventData) {
-
+            Debug.Log("OnBeginDrag");
         }
     }
 
