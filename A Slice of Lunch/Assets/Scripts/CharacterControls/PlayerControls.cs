@@ -100,7 +100,7 @@ public class PlayerControls : MonoBehaviour
                 }
 
                 // Slice fruit
-                Transform parentFruit = maskCollider.transform.parent;
+                Transform parentFood = maskCollider.transform.parent;
 
                 // Gets spawn point
                 Vector2 sliceEdgePoint_0 = Physics2D.Raycast(slicePoints[0], (slicePoints[1] - slicePoints[0]).normalized, 100).point;
@@ -133,7 +133,7 @@ public class PlayerControls : MonoBehaviour
                 //     }
                 // }
                 // if (currentSpriteMask == null) {
-                    currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFruit.GetChild(1)).transform;
+                    currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFood.GetChild(1)).transform;
                 // }
 
                 // Create other side slice
@@ -150,13 +150,13 @@ public class PlayerControls : MonoBehaviour
                 //     }
                 // }
                 // if (otherSlice == null) {
-                    otherSlice = Instantiate(parentFruit.gameObject, parentFruit.position, parentFruit.rotation, parentFruit.parent);
+                    otherSlice = Instantiate(parentFood.gameObject, parentFood.position, parentFood.rotation, parentFood.parent);
                 // }
                 
                 float separationSpace = 0.05f;
                 otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice;
 
-                parentFruit.Translate(-perpendicularSlice * separationSpace);
+                parentFood.Translate(-perpendicularSlice * separationSpace);
                 otherSlice.transform.Translate(perpendicularSlice * separationSpace);
             }
 
