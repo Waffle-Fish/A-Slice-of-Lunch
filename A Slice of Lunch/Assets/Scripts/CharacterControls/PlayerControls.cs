@@ -64,7 +64,7 @@ public class PlayerControls : MonoBehaviour
             Debug.Log("OnEndDrag");
         }
         public void OnDrag(PointerEventData eventData) {
-            rectTransform.anchoredPosition += eventData.delta;
+            Transform.anchoredPosition += eventData.delta;
             Debug.Log("OnDrag");
         }
         public void OnBeginDrag(PointerEventData eventData) {
