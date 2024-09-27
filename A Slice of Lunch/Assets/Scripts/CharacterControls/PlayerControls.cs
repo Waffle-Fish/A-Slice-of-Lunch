@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class PlayerControls : MonoBehaviour
 {
@@ -55,6 +56,21 @@ public class PlayerControls : MonoBehaviour
     // * When food is picked up, have it follow the mouse 
     // * Let go of left click to drop food (it stops following mouse)
     // ================================== 
+    public class DragDropFood : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler {
+        public void OnPointDown(PointerEventData eventData) {
+            
+        }
+        public void OnEndDrag(PointerEventData eventData) {
+        
+        }
+        public void OnDrag(PointerEventData eventData) {
+            rectTransform.anchoredPosition += eventData.delta;
+        }
+        public void OnBeginDrag(PointerEventData eventData) {
+
+        }
+    }
+
 
     // You can rename this function
     private void DetectClickAndHold() {
