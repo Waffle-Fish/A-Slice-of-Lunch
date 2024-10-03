@@ -2172,6 +2172,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2106374836}
   - component: {fileID: 2106374837}
+  - component: {fileID: 2106374838}
   m_Layer: 0
   m_Name: PlayerManager
   m_TagString: Untagged
@@ -2208,6 +2209,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isHoldingKnife: 1
   spriteMask: {fileID: 3479559365565197463, guid: 813a977ff32d2124d9af063a5ea2a352, type: 3}
+--- !u!114 &2106374838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2106374835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0fda002891a0d946af0c85f2f6a1b4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1705939442433985395
 PrefabInstance:
   m_ObjectHideFlags: 0

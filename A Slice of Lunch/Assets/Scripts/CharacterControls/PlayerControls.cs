@@ -20,8 +20,12 @@ public class PlayerControls : MonoBehaviour
     readonly private Vector3 checkVector = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
 
+    [Header("Drag and Drop")]
+    GameObject lastFoodSelected;
+
     private void Awake() {
         mouseWorldPosition = new();
+        lastFoodSelected = null;
     }
 
     private void Start()
@@ -56,21 +60,6 @@ public class PlayerControls : MonoBehaviour
     // * When food is picked up, have it follow the mouse 
     // * Let go of left click to drop food (it stops following mouse)
     // ================================== 
-    public class DragDropFood : MonoBehaviour, IPointerDownHandler, IBeginDragHandler, IEndDragHandler, IDragHandler {
-        public void OnPointerDown(PointerEventData eventData) {
-            Debug.Log("OnPointDown");        
-        }
-        public void OnEndDrag(PointerEventData eventData) {
-            Debug.Log("OnEndDrag");
-        }
-        public void OnDrag(PointerEventData eventData) {
-            Transform.anchoredPosition += eventData.delta;
-            Debug.Log("OnDrag");
-        }
-        public void OnBeginDrag(PointerEventData eventData) {
-            Debug.Log("OnBeginDrag");
-        }
-    }
 
 
     // You can rename this function
