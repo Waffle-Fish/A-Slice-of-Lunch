@@ -17,25 +17,34 @@ public class PlayerControls : MonoBehaviour
     private bool isHoldingKnife = false;
     [SerializeField]
     private GameObject spriteMask;
+
     private Vector3[] slicePoints = new Vector3[2];
     readonly private Vector3 CHECK_VECTOR = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
 
     [Header("Slice Indicators")]
     [SerializeField]
-    private GameObject startingPointObj;
+    private GameObject endPointObj;
+    [SerializeField]
+    private float endPointPosZ;
+    private List<GameObject> endPoints;
     private LineRenderer sliceMarking;
 
     private void Awake() {
-        mouseWorldPosition = new();
         sliceMarking = GetComponent<LineRenderer>();
     }
+
     private void Start()
     {
+        mouseWorldPosition = new();
+        endPoints = new();
+
+        for (int i = 0; i < 2; i++) {
+            endPoints.Add(Instantiate(endPointObj, transform.position, transform.rotation, transform));
+        }
         ResetSlicePoints();
     }
 
-    // This function gets called every frame
     void Update()
     {
         mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -45,22 +54,14 @@ public class PlayerControls : MonoBehaviour
             smPos[0] = slicePoints[0];
             smPos[1] = mouseWorldPosition;
             // Making it behind the circle of the slice pos
-            smPos[0].z = startingPointObj.transform.position.z+1;
-            smPos[1].z = startingPointObj.transform.position.z+1;
+            smPos[0].z = endPoints[0].transform.position.z+1;
+            smPos[1].z = endPoints[1].transform.position.z+1;
             sliceMarking.SetPositions(smPos);
-        }
-    }
 
-    // Returns the tag of the first clicked object
-    private string DetectObject() {
-        clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(clickRay.origin, clickRay.direction * 100, Color.green, 5f);
-        RaycastHit2D hit2D =  Physics2D.GetRayIntersection(clickRay);
-        if (hit2D.collider != null) {
-            Debug.Log(hit2D.collider.gameObject.name);
-            return hit2D.collider.tag;
+            Vector3 endPointPos = mouseWorldPosition;
+            endPointPos.z = endPointPosZ;
+            endPoints[1].transform.position = endPointPos;
         }
-        return "None";
     }
 
     private void DetectLeftClick()
@@ -76,19 +77,20 @@ public class PlayerControls : MonoBehaviour
         slicePoints[0] = CHECK_VECTOR;
         slicePoints[1] = CHECK_VECTOR;
 
-        startingPointObj.SetActive(false);
+        foreach (var ep in endPoints) ep.SetActive(false);
         sliceMarking.SetPositions(slicePoints);
     }
 
     private void BeginSlice() {
         if (slicePoints[0] != CHECK_VECTOR) return;
         slicePoints[0] = mouseWorldPosition;
-        startingPointObj.SetActive(true);
-        startingPointObj.transform.position = new (slicePoints[0].x, slicePoints[0].y, startingPointObj.transform.position.z);
+        foreach (var ep in endPoints) ep.SetActive(true);
+        endPoints[0].transform.position = new (slicePoints[0].x, slicePoints[0].y, endPointPosZ);
     }
 
     private void FinalizeSlice() {
         if (slicePoints[1] != CHECK_VECTOR) return;
+
         slicePoints[1] = mouseWorldPosition;
         slicedObjects = Physics2D.LinecastAll(slicePoints[0], slicePoints[1]).ToList();
         foreach (var maskCollider in slicedObjects) {
