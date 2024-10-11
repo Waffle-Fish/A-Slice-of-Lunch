@@ -91,6 +91,7 @@ GameObject:
   - component: {fileID: 4945796725294028007}
   - component: {fileID: 466870175228770618}
   - component: {fileID: 3833345760931211781}
+  - component: {fileID: 2663547929631934026}
   m_Layer: 0
   m_Name: Food
   m_TagString: Food
@@ -322,6 +323,18 @@ PolygonCollider2D:
       - {x: 1.045, y: -2.225}
       - {x: 1.3349999, y: -2.185}
   m_UseDelaunayMesh: 0
+--- !u!114 &2663547929631934026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5585797069431625902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0fda002891a0d946af0c85f2f6a1b4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &79601741237689079
 PrefabInstance:
   m_ObjectHideFlags: 0
