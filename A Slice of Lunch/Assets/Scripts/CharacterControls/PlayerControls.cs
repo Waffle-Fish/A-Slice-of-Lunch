@@ -18,15 +18,17 @@ public class PlayerControls : MonoBehaviour
     [SerializeField]
     private GameObject spriteMask;
     private Vector3[] slicePoints = new Vector3[2];
-    readonly private Vector3 checkVector = new Vector3(999999, 999999, 999999);
+    readonly private Vector3 CHECK_VECTOR = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
 
     [Header("Slice Indicators")]
     [SerializeField]
     private GameObject startingPointObj;
+    private LineRenderer sliceMarking;
 
     private void Awake() {
         mouseWorldPosition = new();
+        sliceMarking = GetComponent<LineRenderer>();
     }
     private void Start()
     {
@@ -38,6 +40,15 @@ public class PlayerControls : MonoBehaviour
     {
         mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         DetectLeftClick();
+        if (slicePoints[0] != CHECK_VECTOR) {
+            Vector3[] smPos = new Vector3[2];
+            smPos[0] = slicePoints[0];
+            smPos[1] = mouseWorldPosition;
+            // Making it behind the circle of the slice pos
+            smPos[0].z = startingPointObj.transform.position.z+1;
+            smPos[1].z = startingPointObj.transform.position.z+1;
+            sliceMarking.SetPositions(smPos);
+        }
     }
 
     // Returns the tag of the first clicked object
@@ -65,23 +76,22 @@ public class PlayerControls : MonoBehaviour
 
     private void ResetSlicePoints()
     {
-        slicePoints[0] = checkVector;
-        slicePoints[1] = checkVector;
+        slicePoints[0] = CHECK_VECTOR;
+        slicePoints[1] = CHECK_VECTOR;
 
         startingPointObj.SetActive(false);
-
+        sliceMarking.SetPositions(slicePoints);
     }
 
     private void Slice() {
         // Debug.Log("Am Slicing");
-        if (slicePoints[0] == checkVector) {
+        if (slicePoints[0] == CHECK_VECTOR) {
             slicePoints[0] = mouseWorldPosition;
 
             startingPointObj.SetActive(true);
-            startingPointObj.transform.position = new (slicePoints[0].x, slicePoints[0].y, 10);
+            startingPointObj.transform.position = new (slicePoints[0].x, slicePoints[0].y, startingPointObj.transform.position.z);
 
-
-        } else if (slicePoints[1] == checkVector){
+        } else if (slicePoints[1] == CHECK_VECTOR){
             slicePoints[1] = mouseWorldPosition;
             slicedObjects = Physics2D.LinecastAll(slicePoints[0], slicePoints[1]).ToList();
             foreach (var maskCollider in slicedObjects)
