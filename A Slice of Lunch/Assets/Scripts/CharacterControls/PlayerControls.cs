@@ -72,6 +72,9 @@ public class PlayerControls : MonoBehaviour
             }
             // Debug.Log(DetectObject());
         }
+        if (Mouse.current.leftButton.wasReleasedThisFrame) {
+            
+        }
     }
 
     private void ResetSlicePoints()
