@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class PlayerControls : MonoBehaviour
 {
@@ -19,8 +20,12 @@ public class PlayerControls : MonoBehaviour
     readonly private Vector3 checkVector = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
 
+    [Header("Drag and Drop")]
+    GameObject lastFoodSelected;
+
     private void Awake() {
         mouseWorldPosition = new();
+        lastFoodSelected = null;
     }
 
     private void Start()
@@ -55,6 +60,7 @@ public class PlayerControls : MonoBehaviour
     // * When food is picked up, have it follow the mouse 
     // * Let go of left click to drop food (it stops following mouse)
     // ================================== 
+
 
     // You can rename this function
     private void DetectClickAndHold() {
