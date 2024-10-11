@@ -11,7 +11,6 @@ public class PlayerControls : MonoBehaviour
 {
     [Header("Detect Object")]
     private Vector3 mouseWorldPosition;
-    Ray clickRay;
 
     [Header("Slice Variables")]
     [SerializeField]
@@ -81,8 +80,7 @@ public class PlayerControls : MonoBehaviour
 
     private void BeginSlice() {
         // return if slice starts on food
-        clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(clickRay.origin, clickRay.direction * 100, Color.green, 5f);
+        Ray clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit2D hit2D =  Physics2D.GetRayIntersection(clickRay);
         if (hit2D.collider != null && hit2D.collider.CompareTag("Food")) return;
 
@@ -137,6 +135,16 @@ public class PlayerControls : MonoBehaviour
             otherSlice.transform.Translate(perpendicularSlice * separationSpace);
         }
         // Debug.DrawLine(slicePoints[0], slicePoints[1], Color.black, 10f);
+        ResetSlicePoints();
+    }
+
+    public void HoldKnife() {
+        IsHoldingKnife = true;
+        ResetSlicePoints();
+    }
+
+    public void DropKnife() {
+        IsHoldingKnife = false;
         ResetSlicePoints();
     }
 }
