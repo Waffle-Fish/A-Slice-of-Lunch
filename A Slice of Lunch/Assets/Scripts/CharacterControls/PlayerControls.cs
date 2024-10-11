@@ -17,7 +17,6 @@ public class PlayerControls : MonoBehaviour
     private bool isHoldingKnife = false;
     [SerializeField]
     private GameObject spriteMask;
-
     private Vector3[] slicePoints = new Vector3[2];
     readonly private Vector3 CHECK_VECTOR = new Vector3(999999, 999999, 999999);
     List<RaycastHit2D> slicedObjects;
