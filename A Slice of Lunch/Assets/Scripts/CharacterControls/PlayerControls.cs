@@ -13,8 +13,8 @@ public class PlayerControls : MonoBehaviour
     private Vector3 mouseWorldPosition;
 
     [Header("Slice Variables")]
-    [SerializeField]
-    private GameObject spriteMask;
+    // [SerializeField]
+    // private GameObject spriteMask;
     private Vector3[] slicePoints = new Vector3[2];
     public bool IsHoldingKnife /*{ get; private set; }*/ = false;
     readonly private Vector3 CHECK_VECTOR = new Vector3(999999, 999999, 999999);
@@ -27,6 +27,10 @@ public class PlayerControls : MonoBehaviour
     private float endPointPosZ;
     private List<GameObject> endPoints;
     private LineRenderer sliceMarking;
+
+    [Header("Object Pooling")]
+    private ObjectPooler maskPool;
+    private ObjectPooler foodPool;
 
     private void Awake() {
         sliceMarking = GetComponent<LineRenderer>();
@@ -47,19 +51,24 @@ public class PlayerControls : MonoBehaviour
     {
         mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         DetectLeftClick();
-        if (slicePoints[0] != CHECK_VECTOR) {
-            Vector3[] smPos = new Vector3[2];
-            smPos[0] = slicePoints[0];
-            smPos[1] = mouseWorldPosition;
-            // Making it behind the circle of the slice pos
-            smPos[0].z = endPoints[0].transform.position.z+1;
-            smPos[1].z = endPoints[1].transform.position.z+1;
-            sliceMarking.SetPositions(smPos);
+        DisplaySliceMarkings();
+    }
 
-            Vector3 endPointPos = mouseWorldPosition;
-            endPointPos.z = endPointPosZ;
-            endPoints[1].transform.position = endPointPos;
-        }
+    private void DisplaySliceMarkings()
+    {
+        if (slicePoints[0] == CHECK_VECTOR) return;
+
+        Vector3[] smPos = new Vector3[2];
+        smPos[0] = slicePoints[0];
+        smPos[1] = mouseWorldPosition;
+        // Making it behind the circle of the slice pos
+        smPos[0].z = endPoints[0].transform.position.z + 1;
+        smPos[1].z = endPoints[1].transform.position.z + 1;
+        sliceMarking.SetPositions(smPos);
+
+        Vector3 endPointPos = mouseWorldPosition;
+        endPointPos.z = endPointPosZ;
+        endPoints[1].transform.position = endPointPos;
     }
 
     private void DetectLeftClick()
@@ -94,20 +103,22 @@ public class PlayerControls : MonoBehaviour
 
         slicePoints[1] = mouseWorldPosition;
         slicedObjects = Physics2D.LinecastAll(slicePoints[0], slicePoints[1]).ToList();
-        foreach (var maskCollider in slicedObjects) {
+        foreach (var foodCollider in slicedObjects) {
             // ignores not food in slicedObjects
-            if (!maskCollider.transform.CompareTag("Food") ) {
+            if (!foodCollider.transform.CompareTag("Food") ) {
                 continue;
             }
-            
+
             // Slice food
-            Transform parentFood = maskCollider.transform.parent;
+            Transform parentFood = foodCollider.transform.parent;
+
+            // Initialize Pools
+            maskPool = foodCollider.collider.GetComponent<ObjectPooler>();
+            foodPool = parentFood.parent.GetComponent<ObjectPooler>();
 
             // Gets spawn point
             Vector2 sliceEdgePoint_0 = Physics2D.Raycast(slicePoints[0], (slicePoints[1] - slicePoints[0]).normalized, 100).point;
             Vector2 sliceEdgePoint_1 = Physics2D.Raycast(slicePoints[1], (slicePoints[0] - slicePoints[1]).normalized, 100).point;
-            // Debug.DrawLine(slicePoints[0], sliceEdgePoint_0, Color.blue, 100f);
-            // Debug.DrawLine(slicePoints[1], sliceEdgePoint_1, Color.blue, 100f);
             Vector2 sliceCenter = (sliceEdgePoint_0 + sliceEdgePoint_1) / 2f;
 
             // Rotate mask to be parallel to slice
@@ -120,21 +131,39 @@ public class PlayerControls : MonoBehaviour
             Vector2 perpendicularSlice = Vector2.Perpendicular(slicePoints[0]-slicePoints[1]).normalized;
 
             // Spawn Mask
+            GameObject spriteMask = maskPool.GetPooledObject();
             Vector2 spawnPos = sliceCenter + spriteMask.transform.localScale.x /2f * perpendicularSlice;
-            Transform currentSpriteMask = null;
-            currentSpriteMask = Instantiate(spriteMask, spawnPos, Quaternion.Euler(0,0,rotAng), parentFood.GetChild(1)).transform;
+            spriteMask.SetActive(true);
+            spriteMask.transform.SetPositionAndRotation(spawnPos, Quaternion.Euler(0,0,rotAng));
 
             // Create other side slice
-            GameObject otherSlice = null;
-            otherSlice = Instantiate(parentFood.gameObject, parentFood.position, parentFood.rotation, parentFood.parent);
+            GameObject otherSlice = foodPool.GetPooledObject();
+            otherSlice.transform.SetPositionAndRotation(parentFood.position,parentFood.rotation);
             
+            // Set up other slice sprite masks
             float separationSpace = 0.05f;
-            otherSlice.transform.GetChild(1).GetChild(otherSlice.transform.GetChild(1).childCount-1).transform.position = sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice;
+            int maskIndex = 0;
+            ObjectPooler otherSliceMaskPool = otherSlice.transform.GetChild(0).GetComponent<ObjectPooler>();
+            GameObject currentMask = maskPool.GetPooledObjectAtIndex(maskIndex);
+            GameObject otherSliceMask;
+            // Copy all sprite masks of this slice to other slice
+            int numMasks = maskPool.GetNumObjectsActive();
+            while (maskIndex < numMasks-1) {
+                otherSliceMask = otherSliceMaskPool.GetPooledObject();
+                // otherSliceMask.transform.SetPositionAndRotation(currentMask.transform.position, currentMask.transform.rotation);
+                otherSliceMask.SetActive(true);
+                maskIndex++;
+                // currentMask = maskPool.GetPooledObjectAtIndex(maskIndex);
+            }
 
+            otherSliceMask = otherSliceMaskPool.GetPooledObject();
+            otherSliceMask.transform.SetPositionAndRotation(sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice,Quaternion.Euler(0,0,rotAng));
+            otherSliceMask.SetActive(true);
+            
             parentFood.Translate(-perpendicularSlice * separationSpace);
             otherSlice.transform.Translate(perpendicularSlice * separationSpace);
+            otherSlice.SetActive(true);
         }
-        // Debug.DrawLine(slicePoints[0], slicePoints[1], Color.black, 10f);
         ResetSlicePoints();
     }
 
