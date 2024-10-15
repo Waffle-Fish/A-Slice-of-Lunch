@@ -1,8 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +15,7 @@ public class PlayerControls : MonoBehaviour
     private Vector3[] slicePoints = new Vector3[2];
     public bool IsHoldingKnife /*{ get; private set; }*/ = false;
     readonly private Vector3 CHECK_VECTOR = new Vector3(999999, 999999, 999999);
-    List<RaycastHit2D> slicedObjects;
+    private List<RaycastHit2D> slicedObjects = new();
 
     [Header("Slice Indicators")]
     [SerializeField]
@@ -31,6 +28,10 @@ public class PlayerControls : MonoBehaviour
     [Header("Object Pooling")]
     private ObjectPooler maskPool;
     private ObjectPooler foodPool;
+
+    [Header("Undo")]
+    int currentUndoIndex = 0;
+    private Stack<List<GameObject>> everyMove = new();
 
     private void Awake() {
         sliceMarking = GetComponent<LineRenderer>();
@@ -103,11 +104,15 @@ public class PlayerControls : MonoBehaviour
 
         slicePoints[1] = mouseWorldPosition;
         slicedObjects = Physics2D.LinecastAll(slicePoints[0], slicePoints[1]).ToList();
+        if (slicedObjects.Count == 0) {
+            ResetSlicePoints();
+            return;
+        }
+        List<GameObject> objectsEnabledThisTurn = new();
+        currentUndoIndex++;
         foreach (var foodCollider in slicedObjects) {
-            // ignores not food in slicedObjects
-            if (!foodCollider.transform.CompareTag("Food") ) {
-                continue;
-            }
+            // ignores non food in slicedObjects
+            if (!foodCollider.transform.CompareTag("Food") ) continue;
 
             // Slice food
             Transform parentFood = foodCollider.transform.parent;
@@ -135,6 +140,7 @@ public class PlayerControls : MonoBehaviour
             Vector2 spawnPos = sliceCenter + spriteMask.transform.localScale.x /2f * perpendicularSlice;
             spriteMask.SetActive(true);
             spriteMask.transform.SetPositionAndRotation(spawnPos, Quaternion.Euler(0,0,rotAng));
+            objectsEnabledThisTurn.Add(spriteMask);
 
             // Create other side slice
             GameObject otherSlice = foodPool.GetPooledObject();
@@ -145,25 +151,31 @@ public class PlayerControls : MonoBehaviour
             int maskIndex = 0;
             ObjectPooler otherSliceMaskPool = otherSlice.transform.GetChild(0).GetComponent<ObjectPooler>();
             GameObject currentMask = maskPool.GetPooledObjectAtIndex(maskIndex);
-            GameObject otherSliceMask;
+
             // Copy all sprite masks of this slice to other slice
             int numMasks = maskPool.GetNumObjectsActive();
             while (maskIndex < numMasks-1) {
-                otherSliceMask = otherSliceMaskPool.GetPooledObject();
-                // otherSliceMask.transform.SetPositionAndRotation(currentMask.transform.position, currentMask.transform.rotation);
-                otherSliceMask.SetActive(true);
+                GameObject prevSliceMask = otherSliceMaskPool.GetPooledObject();
+                prevSliceMask.SetActive(true);
+                prevSliceMask.transform.SetPositionAndRotation(currentMask.transform.position, currentMask.transform.rotation);
+                objectsEnabledThisTurn.Add(prevSliceMask);
+
                 maskIndex++;
-                // currentMask = maskPool.GetPooledObjectAtIndex(maskIndex);
+                currentMask = maskPool.GetPooledObjectAtIndex(maskIndex);
             }
 
-            otherSliceMask = otherSliceMaskPool.GetPooledObject();
-            otherSliceMask.transform.SetPositionAndRotation(sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice,Quaternion.Euler(0,0,rotAng));
-            otherSliceMask.SetActive(true);
-            
+            GameObject finalSliceMask = otherSliceMaskPool.GetPooledObject();
+            finalSliceMask.SetActive(true);
+            finalSliceMask.transform.SetPositionAndRotation(sliceCenter - spriteMask.transform.localScale.x / 2f * perpendicularSlice,Quaternion.Euler(0,0,rotAng));
+            objectsEnabledThisTurn.Add(finalSliceMask);
+
             parentFood.Translate(-perpendicularSlice * separationSpace);
             otherSlice.transform.Translate(perpendicularSlice * separationSpace);
             otherSlice.SetActive(true);
+
+            objectsEnabledThisTurn.Add(otherSlice);
         }
+        everyMove.Push(objectsEnabledThisTurn);
         ResetSlicePoints();
     }
 
@@ -175,5 +187,16 @@ public class PlayerControls : MonoBehaviour
     public void DropKnife() {
         IsHoldingKnife = false;
         ResetSlicePoints();
+    }
+
+    public void UndoSlice() {
+        if (currentUndoIndex <= 0) return;
+        foreach (GameObject obj in everyMove.Pop())
+        {
+            obj.SetActive(false);
+        }
+        currentUndoIndex--;
+        // disable spritemasks
+        // Disable food
     }
 }

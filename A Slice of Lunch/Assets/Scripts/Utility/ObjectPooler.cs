@@ -22,6 +22,7 @@ public class ObjectPooler : MonoBehaviour
         {
             tmp = Instantiate(objectToCopy,parent);
             tmp.SetActive(false);
+            tmp.name = tmp.name + (i+1).ToString();
             objectPool.Add(tmp);
         }
     }
@@ -33,7 +34,7 @@ public class ObjectPooler : MonoBehaviour
     {
         for(int i = 0; i < maxObjectCount; i++)
         {
-            if(!objectPool[i].activeInHierarchy)
+            if(!objectPool[i].activeSelf)
             {
                 return objectPool[i];
             }
