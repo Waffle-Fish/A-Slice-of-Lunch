@@ -11,11 +11,11 @@ public class ControlFood : MonoBehaviour
 
     private void OnMouseDown() {
         if (playerControls.IsHoldingKnife) return;
-        // Ray clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         // RaycastHit2D hit2D = Physics2D.GetRayIntersection(clickRay);
         // Debug.Log("Hit name:" + hit2D.collider.name);
         // if (hit2D.collider != null && !hit2D.collider.CompareTag("Food")) return;
-
+        Debug.DrawRay(Camera.main.transform.position, clickRay.direction * 1000f, Color.green,10f);
         dragging = true;
     }
 
